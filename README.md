@@ -70,10 +70,12 @@ and put it in `.env` as `GLM_API_KEY=...`. That's it — it runs.
 
 No key yet? It still runs in **offline mode** (deterministic, clearly labeled).
 
-### One-shot
+### One-shot & demo
 
 ```bash
-python main.py             # runs a single demo request and prints the report
+python main.py                                  # single demo request, prints the report
+python demo.py "Build a JSON pretty-printer CLI"  # scripted demo: streams agents + compile-checks output
+python demo.py --fast "..."                     # same, without pacing pauses
 ```
 
 Generated code lands in `generated/run-<id>/` — run it directly:
