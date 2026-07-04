@@ -13,6 +13,30 @@ except (AttributeError, ValueError):
     pass
 
 
+# A short, friendly line for each agent as it acts.
+_AGENT_LINES = {
+    "planner": "planner    breaking the request into a verifiable plan",
+    "researcher": "researcher gathering grounded context",
+    "designer": "designer   choosing the simplest architecture",
+    "coder": "coder      writing runnable code",
+    "validator": "validator  self-checking the whole run",
+    "revise": "fable5     issues found -> requesting a revision",
+}
+
+
+def _progress(orchestrator):
+    """Return an on_event callback that prints each agent as it finishes."""
+
+    def on_event(node: str, delta: dict) -> None:
+        line = _AGENT_LINES.get(node, node)
+        model = ""
+        if node in {"planner", "researcher", "designer", "coder", "validator"}:
+            model = f"  [{orchestrator.settings.model_for(node)}]"
+        print(f"  [ok] {line}{model}")
+
+    return on_event
+
+
 def main() -> None:
     orchestrator = Fable5Orchestrator()
     print("Fable5 Agentic OS")
@@ -36,8 +60,9 @@ def main() -> None:
         if user_input.lower() in {"exit", "quit"}:
             break
 
+        print("\nAgents working...")
         try:
-            result = orchestrator.run(user_input)
+            result = orchestrator.run(user_input, on_event=_progress(orchestrator))
         except Exception as exc:  # keep the REPL alive on any failure
             print(f"\n[error] {exc}")
             continue

@@ -38,8 +38,12 @@ class Fable5Orchestrator:
     def mode(self) -> str:
         return self.runner.mode
 
-    def run(self, request: str) -> Dict[str, Any]:
-        """Execute the full workflow for a request and return a structured result."""
+    def run(self, request: str, on_event=None) -> Dict[str, Any]:
+        """Execute the full workflow for a request and return a structured result.
+
+        Pass ``on_event(node_name, delta)`` to receive live progress as each
+        agent finishes (used by the CLI to stream the pipeline in real time).
+        """
 
         if not request or not request.strip():
             raise ValueError("Request cannot be empty")
@@ -48,7 +52,16 @@ class Fable5Orchestrator:
         run_id = uuid.uuid4().hex
         config = {"configurable": {"thread_id": f"run-{run_id}"}}
         started = time.time()
-        final_state = self._app.invoke({"request": request}, config=config)
+        if on_event is None:
+            final_state = self._app.invoke({"request": request}, config=config)
+        else:
+            # Stream node-by-node updates so callers can show live progress.
+            for chunk in self._app.stream(
+                {"request": request}, config=config, stream_mode="updates"
+            ):
+                for node, delta in chunk.items():
+                    on_event(node, delta or {})
+            final_state = self._app.get_state(config).values
         elapsed = round(time.time() - started, 2)
 
         validation = final_state.get("validation") or {}
