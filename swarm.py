@@ -88,7 +88,11 @@ def main():
     with open(os.path.join(run_dir, "request.txt"), "w", encoding="utf-8") as f:
         f.write(request)
 
-    py = sys.executable
+    # Prefer the project's venv interpreter so the agent windows always have the
+    # dependencies (rich, langchain, ...), even if swarm.py was launched with a
+    # different/system Python.
+    venv_py = os.path.join(REPO, ".venv", "Scripts", "python.exe")
+    py = venv_py if os.path.exists(venv_py) else sys.executable
     worker = os.path.join(REPO, "worker.py")
 
     print("=" * 68)
