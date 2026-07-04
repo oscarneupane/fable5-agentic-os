@@ -63,8 +63,22 @@ python -m pip install -r requirements.txt
 
 cp .env.example .env        # then paste a free GLM key into .env
 
-python tui.py               # ★ live dashboard — watch the agents work in panels
+python swarm.py "Build a URL shortener"  # ★ one terminal window PER agent, live
+python tui.py               # live dashboard — all agents as panels in one window
 python cli.py               # interactive REPL (streams each agent as it finishes)
+```
+
+### Agent swarm (`swarm.py`)
+
+Opens a **separate terminal window for each subagent**. They coordinate through a
+shared run folder: the planner window works first, then the researcher and
+designer windows spring to life **together** (parallel), then the coder, then the
+validator. This window stays as the orchestrator overview.
+
+```bash
+python swarm.py "Build a URL shortener in Python"   # separate windows (Windows)
+python swarm.py --panes "..."                        # one window, split panes (Windows Terminal)
+python swarm.py --headless "..."                     # no windows (CI / testing)
 ```
 
 ### Live dashboard (`tui.py`)
