@@ -1,0 +1,14 @@
+# Secrets — never commit
+.env
+*.env
+!.env.example
+
+# Generated code output
+generated/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+*.egg-info/
