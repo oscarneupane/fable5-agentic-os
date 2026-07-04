@@ -34,7 +34,10 @@ Build a reliable, low-hallucination multi-agent system where:
   https://github.com/DietrichGebert/ponytail (MIT).
 - Stateful workflow with a MemorySaver checkpointer and LangSmith tracing hook
 - User-friendly CLI + one-shot main.py with a formatted report (UTF-8 safe)
-- 11 tests passing (offline, deterministic — no network)
+- Live TUI dashboard (tui.py, rich): one panel per agent, spinners, researcher +
+  designer shown side-by-side to visualize the parallelism. AgentRunner exposes
+  on_agent_start/on_agent_end hooks (thread-safe) that drive it.
+- 15 tests passing (offline, deterministic — no network)
 
 ## Key files
 - src/fable5_os/config.py: centralized settings (provider, model, offline, tracing)

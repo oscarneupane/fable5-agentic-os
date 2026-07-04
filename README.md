@@ -62,7 +62,32 @@ cd fable5-agentic-os
 python -m pip install -r requirements.txt
 
 cp .env.example .env        # then paste a free GLM key into .env
-python cli.py               # interactive
+
+python tui.py               # ★ live dashboard — watch the agents work in panels
+python cli.py               # interactive REPL (streams each agent as it finishes)
+```
+
+### Live dashboard (`tui.py`)
+
+Watch every subagent light up in its own panel — the researcher and designer
+run **side by side** so you can see the parallelism happen in real time:
+
+```
+╭──────────── FABLE5 AGENTIC OS — agents working ────────────╮
+│ > Build a URL shortener in Python                          │
+│ provider: glm   flow: parallel   behavior: ponytail        │
+╰────────────────────────────────────────────────────────────╯
+╭───────────────────── 🧭 planner ──────────────────────╮
+│ ✓ done   2.1s                                          │
+╰────────────────────────────────────────────────────────╯
+        ↓  (parallel)
+╭──── 🔎 researcher ────╮   ╭──── 📐 designer ─────╮
+│ ⠼ gathering context…  │   │ ⠼ choosing arch…     │
+╰───────────────────────╯   ╰──────────────────────╯
+        ↓
+╭───────────────────── ⌨️  coder ───────────────────────╮
+│ • queued                                               │
+╰────────────────────────────────────────────────────────╯
 ```
 
 Get a **free** GLM key at [z.ai](https://z.ai) or [open.bigmodel.cn](https://open.bigmodel.cn)

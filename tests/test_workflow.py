@@ -43,6 +43,17 @@ def test_deterministic_validation_flags_missing_verification() -> None:
     assert has_blocking_issues(issues)
 
 
+def test_agent_runner_fires_hooks() -> None:
+    runner = _offline_runner()
+    events = []
+    runner.on_agent_start = lambda name: events.append(("start", name))
+    runner.on_agent_end = lambda name, fb: events.append(("end", name, fb))
+    runner.run("planner", "do a thing")
+    assert ("start", "planner") in events
+    # offline always falls back, so end reports used_fallback=True
+    assert ("end", "planner", True) in events
+
+
 def test_per_agent_model_resolution() -> None:
     s = Settings(model="cheap-default", agent_models={"coder": "big-model"})
     assert s.model_for("planner") == "cheap-default"   # falls back to default

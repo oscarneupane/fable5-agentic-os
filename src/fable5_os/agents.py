@@ -144,6 +144,11 @@ class AgentRunner:
         self._models: Dict[str, Any] = {}
         # Records the last live-call failure so a silent fallback is diagnosable.
         self.last_error: Optional[str] = None
+        # Optional observers, fired around each agent turn. Used by the TUI to
+        # show agents starting/finishing live (including parallel ones).
+        # on_agent_start(name); on_agent_end(name, used_fallback: bool)
+        self.on_agent_start = None
+        self.on_agent_end = None
 
     @property
     def mode(self) -> str:
@@ -176,9 +181,24 @@ class AgentRunner:
         if schema is None:
             raise KeyError(f"Agent '{agent_name}' has no output schema")
 
+        if self.on_agent_start:
+            self.on_agent_start(agent_name)
+        used_fallback = True
+        try:
+            # Local (not self) state keeps this thread-safe when the researcher
+            # and designer run concurrently.
+            result, used_fallback = self._run_inner(agent_name, request, context, schema)
+            return result
+        finally:
+            if self.on_agent_end:
+                self.on_agent_end(agent_name, used_fallback)
+
+    def _run_inner(self, agent_name, request, context, schema):
+        """Return (result, used_fallback). used_fallback=True means offline."""
+
         model = self._model_for(agent_name)
         if model is None:
-            return offline_generate(agent_name, request)
+            return offline_generate(agent_name, request), True
 
         # Live path: force structured output so we get a validated object back.
         try:
@@ -198,12 +218,12 @@ class AgentRunner:
                 [SystemMessage(content=system), HumanMessage(content=human)]
             )
             # ``with_structured_output`` returns an instance of ``schema``.
-            if isinstance(result, schema):
-                return result
-            # Some providers return a dict; validate it into the schema.
-            return schema.model_validate(result)
+            if not isinstance(result, schema):
+                # Some providers return a dict; validate it into the schema.
+                result = schema.model_validate(result)
+            return result, False
         except Exception as exc:
             # Any live failure (network, parsing, rate limit) degrades to offline
             # rather than crashing the run. Record it so the fallback is not silent.
             self.last_error = f"{agent_name}: {type(exc).__name__}: {exc}"
-            return offline_generate(agent_name, request)
+            return offline_generate(agent_name, request), True
